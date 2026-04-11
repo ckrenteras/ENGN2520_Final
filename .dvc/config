@@ -1,4 +1,4 @@
 [core]
     remote = myremote
 ['remote "myremote"']
-    url = gdrive://1byBOza86CM0iC6eGMHsYwjMb9PTrfIs2
+    url = /oscar/scratch/ckrenter/dvc-storage
