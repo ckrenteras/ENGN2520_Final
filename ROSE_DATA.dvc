@@ -1,0 +1,6 @@
+outs:
+- md5: 659503d6f5b9f6c40df31db1b47a1829.dir
+  size: 65166627
+  nfiles: 1018
+  hash: md5
+  path: ROSE_DATA
