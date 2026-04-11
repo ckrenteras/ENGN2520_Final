@@ -1,0 +1,6 @@
+outs:
+- md5: 57fdcf6e9bef6f4733ffcae17167f3ab.dir
+  size: 190185000
+  nfiles: 1605
+  hash: md5
+  path: OCTA500_3mm
