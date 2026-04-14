@@ -1,2 +1,4 @@
 /ROSE_DATA
 /OCTA500_3mm
+*.pth
+__pycache__/
