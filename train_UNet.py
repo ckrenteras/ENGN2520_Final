@@ -49,7 +49,7 @@ for epoch in range(NUM_EPOCHS ):
         outputs = basic_unet(inputs) # (B, 1, H, W)
         
         # Calculate loss
-        loss = criterion(outputs, targets)
+        loss = criterion(outputs.squeeze(1), targets.squeeze(1).float())
         # Backward pass: compute gradient of the loss with respect to parameters
         loss.backward()
         # Update weights based on gradients
@@ -62,48 +62,86 @@ for epoch in range(NUM_EPOCHS ):
     basic_unet.eval()
     val_loss = 0.0
     val_dice = 0.0
+    val_jaccard = 0.0
+    val_balanced_acc = 0.0
+    val_auc = 0.0
+
     with torch.no_grad():
         for inputs, targets in val_loader:
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = basic_unet(inputs)
-            loss = criterion(outputs, targets)
+            loss = criterion(outputs.squeeze(1), targets.squeeze(1).float())
             val_loss += loss.item()
 
             # Dice score metric
-            preds = (torch.sigmoid(outputs) > 0.5).long().squeeze(1)
-            val_dice += metrics.dice_score(preds, targets.squeeze(1).long())
+            probs  = torch.sigmoid(outputs).squeeze(1)
+            preds = (probs > 0.5).long()
+            targets_squeezed = targets.squeeze(1).long()
+
+            val_dice += metrics.dice_score(preds, targets_squeezed)
+            val_jaccard += metrics.jaccard_index(preds, targets_squeezed)
+            val_balanced_acc += metrics.balanced_acc(preds, targets_squeezed)
+            val_auc += metrics.auc(probs, targets_squeezed)
+
 
         val_loss /= len(val_loader)
         val_dice /= len(val_loader)
+        val_jaccard /= len(val_loader)
+        val_balanced_acc /= len(val_loader)
+        val_auc /= len(val_loader)
+
 
     print(f""" 
     Epoch: {epoch + 1} of {NUM_EPOCHS}
     Train loss: {train_loss}
     Validation loss: {val_loss}
     Dice score: {val_dice}
+    Jaccard: {val_jaccard}
+    Balanced Accuracy: {val_balanced_acc}
+    AUC: {val_auc}
     """)
 
 # test loop
 basic_unet.eval()
 test_loss = 0.0
 test_dice = 0.0
+test_jaccard= 0.0
+test_balanced_acc = 0.0
+test_auc = 0.0
+
+
 with torch.no_grad():
     for inputs, targets in test_loader:
         inputs, targets = inputs.to(device), targets.to(device)
         outputs = basic_unet(inputs)
-        loss = criterion(outputs, targets)
+        loss = criterion(outputs.squeeze(1), targets.squeeze(1).float())
         test_loss += loss.item()
 
-        preds = (torch.sigmoid(outputs) > 0.5).long().squeeze(1)
-        test_dice += metrics.dice_score(preds, targets.squeeze(1).long())
+
+        probs  = torch.sigmoid(outputs).squeeze(1)
+        preds = (probs > 0.5).long()
+        targets_squeezed = targets.squeeze(1).long()
+
+        test_dice += metrics.dice_score(preds, targets_squeezed)
+        test_jaccard += metrics.jaccard_index(preds, targets_squeezed)
+        test_balanced_acc += metrics.balanced_acc(preds, targets_squeezed)
+        test_auc += metrics.auc(probs, targets_squeezed)
+
 
     test_loss /= len(test_loader)
     test_dice /= len(test_loader)
+    test_jaccard /= len(test_loader)
+    test_balanced_acc /= len(test_loader)
+    test_auc /= len(test_loader)
 
-print(f"""
-    Test loss: {test_loss}
-    Test dice score: {test_dice}
-""")
+print(f""" 
+    Epoch: {epoch + 1} of {NUM_EPOCHS}
+    Test loss: {train_loss}
+    Test Dice score: {val_dice}
+    Test Jaccard: {val_jaccard}
+    Test Balanced Accuracy: {val_balanced_acc}
+    Test AUC: {val_auc}
+    """)
 
 torch.save(basic_unet.state_dict(), "UNet_res34.pth")
 print(f"Model saved to UNet.pth")
