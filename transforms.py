@@ -32,7 +32,7 @@ class ContrastBrightness:
         self.alpha=alpha
         self.beta=beta
     def __call__(self, image):
-        return cv2.convertScaleAbs(image, self.alpha, self.beta)
+        return cv2.convertScaleAbs(image, alpha=self.alpha, beta=self.beta)
     
 class Rotation:
     def __init__(self, rotation=cv2.ROTATE_90_CLOCKWISE):
