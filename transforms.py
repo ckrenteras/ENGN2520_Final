@@ -26,3 +26,10 @@ class ElasticDeform:
             order=[1, 0], mode='reflect'
         )
         return image_def.astype(np.uint8), mask_def.astype(np.uint8)
+    
+class contrast_brightness:
+    def __init__(self, alpha=1.5, beta=0):
+        self.alpha=alpha
+        self.beta=beta
+    def __call__(self, image):
+        return cv2.convertScaleAbs(image, self.alpha, self.beta)
