@@ -1,0 +1,28 @@
+import cv2
+import numpy as np
+from functools import partial
+import torchvision.transforms
+import elasticdeform
+
+def gaussian_noise(img, std_dev, mean=0):
+    noise = np.random.normal(mean * 255, std_dev * 255, img.shape)
+    return  np.clip((img.astype(np.float32) + noise), 0, 255).astype(np.uint8)
+
+class GaussianNoiseTransform:
+    def __init__(self, std_dev, mean=0):
+        self.std_dev = std_dev
+        self.mean = mean
+    def __call__(self, img):
+        return gaussian_noise(img, self.std_dev, self.mean)
+    
+class ElasticDeform:
+    def __init__(self, sigma=3, points=6):
+        self.sigma = sigma
+        self.points = points
+
+    def __call__(self, image, mask):
+        image_def, mask_def = elasticdeform.deform_random_grid(
+            [image, mask], self.sigma, self.points,
+            order=[1, 0], mode='reflect'
+        )
+        return image_def.astype(np.uint8), mask_def.astype(np.uint8)

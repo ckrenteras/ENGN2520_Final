@@ -7,13 +7,16 @@ import matplotlib.pyplot as plt
 
 # create class for ROSE dataset for torch later
 class ROSE_Dataset(Dataset):
-    def __init__(self, base_path, subsets=['SVC', 'DVC', 'SVC_DVC'], split='train', transform=None, target_size=None):
+    def __init__(self, base_path, subsets=['SVC', 'DVC', 'SVC_DVC'], split='train', 
+                 transform=None, target_size=None, transform_label=False, elastic_transform=None):
         # probs only gonna use SVC_DVC, that's superficial and deep vasculature combined
         # transforms if we're doing augmentations later
         self.transform = transform
         self.image_paths = []
         self.mask_paths = []
         self.target_size = target_size
+        self.transform_label = transform_label
+        self.elastic_transform = elastic_transform
 
         for subset in subsets:
             img_dir = os.path.join(base_path, subset, split, 'img')
@@ -40,9 +43,13 @@ class ROSE_Dataset(Dataset):
                 mask, 
                 self.target_size,
                 interpolation=cv2.INTER_NEAREST)
-        
+            
+        if self.elastic_transform:
+                image, mask = self.elastic_transform(image, mask)
         if self.transform:
-            image, mask = self.transform(image, mask)
+            image = self.transform(image)
+            if (self.transform_label):
+                mask = self.transform(mask)
 
         # (H, W) -> (1, H, W) float tensor normalized to [0, 1]
         image = torch.tensor(image, dtype=torch.float32).unsqueeze(0) / 255.0
@@ -53,13 +60,15 @@ class ROSE_Dataset(Dataset):
 
 # create class for OCTA500 3mm dataset
 class OCTA5003M_Dataset(Dataset):
-    def __init__(self, base_path, transform=None, target_size=None):
+    def __init__(self, base_path, transform=None, target_size=None, 
+                 transform_label=False, elastic_transform=None):
         # transforms if we're doing augmentations later
         self.transform = transform
         self.target_size = target_size
         self.image_paths = []
         self.mask_paths = []
-
+        self.transform_label=transform_label
+        self.elastic_transform = elastic_transform
 
         img_dir = os.path.join(base_path, 'Img/Projection_Maps/OCTA(ILM_OPL)')
         mask_dir = os.path.join(base_path, 'Labels/GT_Capillary')
@@ -86,8 +95,14 @@ class OCTA5003M_Dataset(Dataset):
                 self.target_size,
                 interpolation=cv2.INTER_NEAREST)
         
+        if self.elastic_transform:
+                image, mask = self.elastic_transform(image, mask)
+
         if self.transform:
-            image, mask = self.transform(image, mask)
+            image = self.transform(image)
+            if (self.transform_label):
+                mask = self.transform(mask)
+        
 
         # (H, W) -> (1, H, W) float tensor normalized to [0, 1]
         image = torch.tensor(image, dtype=torch.float32).unsqueeze(0) / 255.0
