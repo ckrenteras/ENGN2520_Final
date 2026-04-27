@@ -27,9 +27,21 @@ class ElasticDeform:
         )
         return image_def.astype(np.uint8), mask_def.astype(np.uint8)
     
-class contrast_brightness:
+class ContrastBrightness:
     def __init__(self, alpha=1.5, beta=0):
         self.alpha=alpha
         self.beta=beta
     def __call__(self, image):
         return cv2.convertScaleAbs(image, self.alpha, self.beta)
+    
+class Rotation:
+    def __init__(self, rotation=cv2.ROTATE_90_CLOCKWISE):
+        self.rotation=rotation
+    def __call__(self, image):
+        return cv2.rotate(image, self.rotation)
+    
+class ImFlip:
+    def __init__(self, flip_code=1):
+        self.flip_code=flip_code
+    def __call__(self, image):
+        return cv2.flip(image, self.flip_code)
